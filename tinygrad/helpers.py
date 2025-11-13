@@ -461,3 +461,14 @@ copyreg.pickle(types.CodeType, _serialize_code)
 
 def _serialize_module(module:types.ModuleType): return importlib.import_module, (module.__name__,)
 copyreg.pickle(types.ModuleType, _serialize_module)
+
+def hash128(data):
+    """Simple 128-bit hash mixer"""
+    h1 = 0x9e3779b97f4a7c15
+    h2 = 0xc6a4a7935bd1e995
+    
+    for b in (data if isinstance(data, bytes) else data.encode()):
+        h1 = ((h1 ^ b) * 0x87c37b91114253d5) & 0xffffffffffffffff
+        h2 = ((h2 ^ b) * 0x4cf5ad432745937f) & 0xffffffffffffffff
+        h1, h2 = h2, h1  
+    return ((h1 << 64 | h2) & 0xffffffffffffffff).to_bytes(16, 'big')

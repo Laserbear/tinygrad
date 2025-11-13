@@ -8,7 +8,7 @@ from tinygrad.mixin import OpMixin
 from tinygrad.dtype import ConstType, ImageDType, dtypes, DType, truncate, PtrDType, least_upper_dtype, Invalid, InvalidType, AddrSpace
 from tinygrad.helpers import ContextVar, all_int, prod, getenv, all_same, Context, partition, temp, unwrap, T, argfix, Metadata, flatten, TRACEMETA
 from tinygrad.helpers import PICKLE_BUFFERS, PROFILE, dedup, cdiv, cmod, diskcache_put, to_function_name, cpu_profile, TracingKey, VIZ, SPEC, CI
-from tinygrad.helpers import strip_parens, colored, ansilen
+from tinygrad.helpers import strip_parens, colored, ansilen, hash128
 if TYPE_CHECKING:
   from tinygrad.device import Buffer, MultiBuffer
 
@@ -132,7 +132,7 @@ class UOp(OpMixin, metaclass=UOpMetaClass):
   def rtag(self, tag=True): return self.replace(tag=tag)
   @functools.cached_property
   def key(self) -> bytes:
-    return hashlib.blake2s(str((self.op, self.dtype, self.arg)).encode() + b"".join([s.key for s in self.src])).digest()
+    return hash128(str((self.op, self.dtype, self.arg)).encode() + b"".join([s.key for s in self.src]))
   def __repr__(self): return pretty_print(self, lambda x: f"{type(self).__name__}({x.op}, {x.dtype}, arg={x.argstr()}{x.tagstr()}, src=(%s))")
   def argstr(self): return f'({", ".join(map(str, self.arg))})' if self.op is Ops.REDUCE_AXIS else repr(self.arg)
   def tagstr(self): return f", tag={self.tag}" if self.tag is not None else ""
